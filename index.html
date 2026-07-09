@@ -241,7 +241,7 @@
 </head>
 
 <body>
-  <div class="version-number">v0.70</div>
+  <div class="version-number">v0.76</div>
   <div class="container">
     <div class="title-row">
       <div class="title-spacer"></div>
@@ -253,7 +253,7 @@
       <label for="building">Building</label>
       <button class="gear-button" onclick="toggleConfig()" title="Building Config" aria-label="Building Config">⚙</button>
     </div>
-    <select id="building"></select>
+    <select id="building" onchange="updateRompVisibility()"></select>
 
     <div id="configBox" class="config-box">
       <h2 style="margin-top: 0;">Building Config</h2>
@@ -315,7 +315,8 @@
       <label for="rompMode">Romp Mode</label>
       <select id="rompMode" onchange="updateRompVisibility()">
         <option value="none">No Romp Adjustment</option>
-        <option value="evenOddEvery40">100 Style: Even/Odd + Every X Rows</option>
+        <option value="evenOddEvery40">Even/Odd + Every X Rows</option>
+        <option value="building100TwoRomp">100 Two-Romp Layout</option>
       </select>
             <div id="rompOptions" class="row-grid">
         <div>
@@ -325,6 +326,21 @@
         <div>
           <label for="rompRowInterval">New Romp Every X Rows</label>
           <input id="rompRowInterval" type="number" step="1" />
+        </div>
+      </div>
+
+      <div id="twoRompOptions" class="row-grid hidden">
+        <div>
+          <label for="twoRompSpacing">Distance Between Romps</label>
+          <input id="twoRompSpacing" type="number" step="0.01" />
+        </div>
+        <div>
+          <label for="twoRompPairedRowSpacing">Paired Row Distance</label>
+          <input id="twoRompPairedRowSpacing" type="number" step="0.01" />
+        </div>
+        <div>
+          <label for="twoRompUnpairedRowSpacing">Unpaired Row Distance</label>
+          <input id="twoRompUnpairedRowSpacing" type="number" step="0.01" />
         </div>
       </div>
 
@@ -351,6 +367,14 @@
     </div>
     <input id="location1" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Example: 1-11" autocomplete="off" />
 
+    <div id="location1RoomField" class="hidden">
+      <label for="location1Room">Location 1 Romp</label>
+      <select id="location1Room">
+        <option value="1">Romp 1</option>
+        <option value="2">Romp 2</option>
+      </select>
+    </div>
+
     <div class="location-label-row">
       <label for="location2">Location 2</label>
       <div class="side-toggle">
@@ -361,6 +385,14 @@
       </div>
     </div>
     <input id="location2" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Example: 2-20" autocomplete="off" />
+
+    <div id="location2RoomField" class="hidden">
+      <label for="location2Room">Location 2 Romp</label>
+      <select id="location2Room">
+        <option value="1">Romp 1</option>
+        <option value="2">Romp 2</option>
+      </select>
+    </div>
 
     <div class="small-note">Enter numbers only. The dash is added automatically before the 2-digit floor number.</div>
 
@@ -382,11 +414,14 @@
       cFloor: 32,
       dFloor: 70,
       distanceToWireTray: 3,
-      rowPairSpacing: 4,
-      betweenPairSpacing: 10,
+      rowPairSpacing: 2.44,
+      betweenPairSpacing: 4.57,
       rompMode: "none",
       rompHallwayWidth: 4.57,
-      rompRowInterval: 40
+      rompRowInterval: 40,
+      twoRompSpacing: 15.24,
+      twoRompPairedRowSpacing: 1.52,
+      twoRompUnpairedRowSpacing: 3.05
     };
 
     let buildingConfigs = {};
@@ -448,11 +483,21 @@
         if (buildingConfigs[building].rompMode === undefined) buildingConfigs[building].rompMode = "none";
         if (buildingConfigs[building].rompHallwayWidth === undefined) buildingConfigs[building].rompHallwayWidth = 4.57;
         if (buildingConfigs[building].rompRowInterval === undefined) buildingConfigs[building].rompRowInterval = buildingConfigs[building].rompFloorInterval ?? 40;
+        if (buildingConfigs[building].twoRompSpacing === undefined) buildingConfigs[building].twoRompSpacing = 15.24;
+        if (buildingConfigs[building].twoRompPairedRowSpacing === undefined) buildingConfigs[building].twoRompPairedRowSpacing = 1.52;
+        if (buildingConfigs[building].twoRompUnpairedRowSpacing === undefined) buildingConfigs[building].twoRompUnpairedRowSpacing = 3.05;
         delete buildingConfigs[building].rompFloorInterval;
       });
 
+      ["100", "104", "105"].forEach(function (building) {
+        if (buildingConfigs[building]) {
+          buildingConfigs[building].rowPairSpacing = 2.44;
+          buildingConfigs[building].betweenPairSpacing = 4.57;
+        }
+      });
+
       if (buildingConfigs["100"]) {
-        buildingConfigs["100"].rompMode = "evenOddEvery40";
+        buildingConfigs["100"].rompMode = "building100TwoRomp";
       }
 
       if (buildingConfigs["104"]) {
@@ -514,17 +559,41 @@
 
     function updateRompVisibility() {
       const rompOptions = document.getElementById("rompOptions");
+      const twoRompOptions = document.getElementById("twoRompOptions");
+      const location1RoomField = document.getElementById("location1RoomField");
+      const location2RoomField = document.getElementById("location2RoomField");
       const rompMode = document.getElementById("rompMode");
+      const selectedMode = rompMode ? rompMode.value : "none";
 
-      if (!rompOptions || !rompMode) {
-        return;
+      if (rompOptions) {
+        if (selectedMode === "evenOddEvery40") {
+          rompOptions.classList.remove("hidden");
+        } else {
+          rompOptions.classList.add("hidden");
+        }
       }
 
-      if (rompMode.value === "none") {
-        rompOptions.classList.add("hidden");
-      } else {
-        rompOptions.classList.remove("hidden");
+      if (twoRompOptions) {
+        if (selectedMode === "building100TwoRomp") {
+          twoRompOptions.classList.remove("hidden");
+        } else {
+          twoRompOptions.classList.add("hidden");
+        }
       }
+
+      const building = document.getElementById("building") ? document.getElementById("building").value : "";
+      const config = getConfig(building);
+      const showRoomFields = config.rompMode === "building100TwoRomp";
+
+      [location1RoomField, location2RoomField].forEach(function (field) {
+        if (!field) return;
+
+        if (showRoomFields) {
+          field.classList.remove("hidden");
+        } else {
+          field.classList.add("hidden");
+        }
+      });
     }
 
     function loadConfigForm() {
@@ -544,6 +613,9 @@
       document.getElementById("rompMode").value = config.rompMode || "none";
       setDistanceInputValue("rompHallwayWidth", config.rompHallwayWidth ?? 4.57);
       document.getElementById("rompRowInterval").value = config.rompRowInterval ?? 40;
+      setDistanceInputValue("twoRompSpacing", config.twoRompSpacing ?? 15.24);
+      setDistanceInputValue("twoRompPairedRowSpacing", config.twoRompPairedRowSpacing ?? 1.52);
+      setDistanceInputValue("twoRompUnpairedRowSpacing", config.twoRompUnpairedRowSpacing ?? 3.05);
       updateRompVisibility();
     }
 
@@ -570,7 +642,10 @@
         betweenPairSpacing: readDistanceInputMeters("betweenPairSpacing", DEFAULT_BUILDING_CONFIG.betweenPairSpacing),
         rompMode: document.getElementById("rompMode").value,
         rompHallwayWidth: readDistanceInputMeters("rompHallwayWidth", DEFAULT_BUILDING_CONFIG.rompHallwayWidth),
-        rompRowInterval: readNumberInput("rompRowInterval", DEFAULT_BUILDING_CONFIG.rompRowInterval)
+        rompRowInterval: readNumberInput("rompRowInterval", DEFAULT_BUILDING_CONFIG.rompRowInterval),
+        twoRompSpacing: readDistanceInputMeters("twoRompSpacing", DEFAULT_BUILDING_CONFIG.twoRompSpacing),
+        twoRompPairedRowSpacing: readDistanceInputMeters("twoRompPairedRowSpacing", DEFAULT_BUILDING_CONFIG.twoRompPairedRowSpacing),
+        twoRompUnpairedRowSpacing: readDistanceInputMeters("twoRompUnpairedRowSpacing", DEFAULT_BUILDING_CONFIG.twoRompUnpairedRowSpacing)
       };
 
       saveStoredConfigs();
@@ -707,7 +782,10 @@
         "distanceToWireTray",
         "rowPairSpacing",
         "betweenPairSpacing",
-        "rompHallwayWidth"
+        "rompHallwayWidth",
+        "twoRompSpacing",
+        "twoRompPairedRowSpacing",
+        "twoRompUnpairedRowSpacing"
       ];
 
       distanceIds.forEach(function (id) {
@@ -835,6 +913,45 @@
       return crossings * hallwayWidth;
     }
 
+    function getBuilding100SpecialRowDistance(rowA, rowB, config) {
+      const startRow = Math.min(rowA, rowB);
+      const endRow = Math.max(rowA, rowB);
+      const specialFeet = {
+        "5-6": 12,
+        "11-12": 8,
+        "12-13": 14,
+        "18-19": 25,
+        "24-25": 20,
+        "30-31": 14,
+        "34-35": 36,
+        "36-37": 10,
+        "38-39": 20,
+        "44-45": 20,
+        "48-49": 12
+      };
+      let distance = 0;
+
+      for (let row = startRow; row < endRow; row++) {
+        const key = row + "-" + (row + 1);
+
+        if (specialFeet[key] !== undefined) {
+          distance += feetToMeters(specialFeet[key]);
+        } else if (row >= 2 && row % 2 === 0) {
+          // Row 1 is alone. Rows 2-3, 4-5, 6-7, etc. are paired.
+          distance += config.twoRompPairedRowSpacing;
+        } else {
+          distance += config.twoRompUnpairedRowSpacing;
+        }
+      }
+
+      return distance;
+    }
+
+    function getSelectedRoom(id) {
+      const element = document.getElementById(id);
+      return element ? element.value : "1";
+    }
+
     function calculateBuildingDistance(locationA, locationB, path, location1Side, location2Side, config) {
       let distance = 0;
       const pathMachineNumber = getPathMachineNumber(path, config);
@@ -848,19 +965,42 @@
         return "INVALID_FLOOR";
       }
 
-      if (locationA.row === locationB.row) {
+      const location1Room = getSelectedRoom("location1Room");
+      const location2Room = getSelectedRoom("location2Room");
+      const isDifferent100Room = config.rompMode === "building100TwoRomp" && location1Room !== location2Room;
+
+      if (locationA.row === locationB.row && !isDifferent100Room) {
         const machineDifference = Math.abs(locationA.machine - locationB.machine);
         distance += machineDifference * FIXED_FLOOR_SPACING_METERS;
       } else {
-        const startToPath = Math.abs(locationA.machine - pathMachineNumber);
-        const pathToDestination = Math.abs(locationB.machine - pathMachineNumber);
+        let startToPath = Math.abs(locationA.machine - pathMachineNumber);
+        let pathToDestination = Math.abs(locationB.machine - pathMachineNumber);
+        let roomCrossingDistance = 0;
+
+        if (config.rompMode === "building100TwoRomp") {
+          const location1Room = getSelectedRoom("location1Room");
+          const location2Room = getSelectedRoom("location2Room");
+
+          if (location1Room !== location2Room) {
+            const startConnector = location1Room === "1" ? 94 : 11;
+            const destinationConnector = location2Room === "1" ? 94 : 11;
+
+            startToPath = Math.abs(locationA.machine - startConnector);
+            pathToDestination = Math.abs(locationB.machine - destinationConnector);
+            roomCrossingDistance = config.twoRompSpacing;
+          }
+        }
+
         const totalMachineSpaces = startToPath + pathToDestination;
         const machineDistance = totalMachineSpaces * FIXED_FLOOR_SPACING_METERS;
-        const rowDistance = getRowDistance(locationA.row, locationB.row, config);
+        const rowDistance = config.rompMode === "building100TwoRomp"
+          ? getBuilding100SpecialRowDistance(locationA.row, locationB.row, config)
+          : getRowDistance(locationA.row, locationB.row, config);
         const rompAdjustment = getRompAdjustment(locationA, locationB, config);
 
         distance += machineDistance;
         distance += rowDistance;
+        distance += roomCrossingDistance;
         distance += rompAdjustment;
         distance += FIXED_CORNER_ADD_METERS;
       }
@@ -993,8 +1133,8 @@
           <strong>Rounded:</strong> up to nearest 5 meters<br>
           <strong>Building:</strong> ${building}<br>
           <strong>Path:</strong> ${path}<br>
-          <strong>Location 1:</strong> ${location1.row}-${location1.machine} (${location1Side.charAt(0).toUpperCase() + location1Side.slice(1)})<br>
-          <strong>Location 2:</strong> ${location2.row}-${location2.machine} (${location2Side.charAt(0).toUpperCase() + location2Side.slice(1)})<br><br>
+          <strong>Location 1:</strong> ${location1.row}-${location1.machine} (${location1Side.charAt(0).toUpperCase() + location1Side.slice(1)})${config.rompMode === "building100TwoRomp" ? " Romp " + getSelectedRoom("location1Room") : ""}<br>
+          <strong>Location 2:</strong> ${location2.row}-${location2.machine} (${location2Side.charAt(0).toUpperCase() + location2Side.slice(1)})${config.rompMode === "building100TwoRomp" ? " Romp " + getSelectedRoom("location2Room") : ""}<br><br>
           ${pathSummary}
         </div>
       `;
