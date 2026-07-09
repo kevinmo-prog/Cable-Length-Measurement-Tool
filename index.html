@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cable Length Measurement Tool</title>
   <!-- Configurable buildings saved in browser localStorage -->
 
@@ -25,8 +24,39 @@
     }
 
     h1 {
+      margin: 0;
       text-align: center;
-      margin-top: 0;
+      flex: 1;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .title-spacer {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+    }
+
+    .download-button {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      margin: 0;
+      border-radius: 6px;
+      background: #444;
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .download-button:hover {
+      background: #555;
     }
 
     h2 {
@@ -198,22 +228,26 @@
 
 <body>
   <div class="container">
-    <h1>Cable Length Measurement Tool</h1>
+    <div class="title-row">
+      <div class="title-spacer"></div>
+      <h1>Cable Length Measurement Tool</h1>
+      <button class="download-button" onclick="downloadPage()" title="Save Tool" aria-label="Save Tool">💾</button>
+    </div>
 
     <div class="inline-label-row">
       <label for="building">Building</label>
       <button class="gear-button" onclick="toggleConfig()" title="Building Config" aria-label="Building Config">⚙</button>
     </div>
-    <select id="building"></select>
+    <select id="building"><option value="100">100</option><option value="104">104</option><option value="105">105</option></select>
 
     <div id="configBox" class="config-box">
       <h2 style="margin-top: 0;">Building Config</h2>
 
       <label for="configBuilding">Edit Building</label>
-      <select id="configBuilding" onchange="loadConfigForm()"></select>
+      <select id="configBuilding" onchange="loadConfigForm()"><option value="100">100</option><option value="104">104</option><option value="105">105</option></select>
 
       <label for="newBuilding">Add Building</label>
-      <input id="newBuilding" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Example: 106" autocomplete="off" />
+      <input id="newBuilding" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Example: 106" autocomplete="off">
       <button class="secondary-button" onclick="addBuilding()">Add Building</button>
 
       <h2>Path Layout</h2>
@@ -223,19 +257,19 @@
       <div class="row-grid">
         <div>
           <label for="aFloor">A Floor Location</label>
-          <input id="aFloor" type="tel" inputmode="numeric" pattern="[0-9]*" />
+          <input id="aFloor" type="tel" inputmode="numeric" pattern="[0-9]*">
         </div>
         <div>
           <label for="bFloor">B Floor Location</label>
-          <input id="bFloor" type="tel" inputmode="numeric" pattern="[0-9]*" />
+          <input id="bFloor" type="tel" inputmode="numeric" pattern="[0-9]*">
         </div>
         <div>
           <label for="cFloor">C Floor Location</label>
-          <input id="cFloor" type="tel" inputmode="numeric" pattern="[0-9]*" />
+          <input id="cFloor" type="tel" inputmode="numeric" pattern="[0-9]*">
         </div>
         <div>
           <label for="dFloor">D Floor Location</label>
-          <input id="dFloor" type="tel" inputmode="numeric" pattern="[0-9]*" />
+          <input id="dFloor" type="tel" inputmode="numeric" pattern="[0-9]*">
         </div>
       </div>
 
@@ -251,15 +285,15 @@
       <div class="row-grid">
         <div>
           <label for="distanceToWireTray">Distance to Wire Tray</label>
-          <input id="distanceToWireTray" type="number" step="0.01" />
+          <input id="distanceToWireTray" type="number" step="0.01">
         </div>
         <div>
           <label for="rowPairSpacing">Distance Between Paired Rows</label>
-          <input id="rowPairSpacing" type="number" step="0.01" />
+          <input id="rowPairSpacing" type="number" step="0.01">
         </div>
         <div>
           <label for="betweenPairSpacing">Distance Between Aisles</label>
-          <input id="betweenPairSpacing" type="number" step="0.01" />
+          <input id="betweenPairSpacing" type="number" step="0.01">
         </div>
       </div>
 
@@ -278,24 +312,24 @@
     <div class="location-label-row">
       <label for="location1">Location 1</label>
       <div class="side-toggle">
-        <input id="location1Left" name="location1SideToggle" type="radio" value="left" checked />
+        <input id="location1Left" name="location1SideToggle" type="radio" value="left" checked="">
         <label for="location1Left">L</label>
-        <input id="location1Right" name="location1SideToggle" type="radio" value="right" />
+        <input id="location1Right" name="location1SideToggle" type="radio" value="right">
         <label for="location1Right">R</label>
       </div>
     </div>
-    <input id="location1" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Example: 1-11" autocomplete="off" />
+    <input id="location1" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Example: 1-11" autocomplete="off">
 
     <div class="location-label-row">
       <label for="location2">Location 2</label>
       <div class="side-toggle">
-        <input id="location2Left" name="location2SideToggle" type="radio" value="left" checked />
+        <input id="location2Left" name="location2SideToggle" type="radio" value="left" checked="">
         <label for="location2Left">L</label>
-        <input id="location2Right" name="location2SideToggle" type="radio" value="right" />
+        <input id="location2Right" name="location2SideToggle" type="radio" value="right">
         <label for="location2Right">R</label>
       </div>
     </div>
-    <input id="location2" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Example: 2-20" autocomplete="off" />
+    <input id="location2" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Example: 2-20" autocomplete="off">
 
     <div class="small-note">Enter numbers only. The dash is added automatically before the 2-digit floor number.</div>
 
@@ -769,6 +803,20 @@
       });
     }
 
+    function downloadPage() {
+      const htmlText = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([htmlText], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "cablemeasurementtool.html";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
     function getSelectedSide(name) {
       const selected = document.querySelector(`input[name="${name}"]:checked`);
       return selected ? selected.value : "left";
@@ -857,5 +905,6 @@
       setupLocationFormatter();
     });
   </script>
-</body>
-</html>
+
+
+</body></html>
